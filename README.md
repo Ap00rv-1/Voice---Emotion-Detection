@@ -78,9 +78,9 @@ Open **demo/demo.ipynb** in Google Colab:
 
 ### Step 4 — Use in your own code
 ```python
-from inference.pipeline import ArrowheadPipeline
+from inference.pipeline import Pipeline
 
-pipeline = ArrowheadPipeline(
+pipeline = Pipeline(
     emotion_model_path="path/to/wav2vec2-shemo-bfsi",
     hf_token="your_hf_token",
 )
@@ -140,7 +140,7 @@ Voice---Emotion-Detection/
 
 Standard emotion detectors are trained on Western studio-recorded speech.
 This system is trained on South Asian speech patterns and augmented to handle
-real phone call audio quality — matching the actual conditions of an Arrowhead call center.
+real phone call audio quality — matching the actual conditions of an  call center.
 
 The escalation trigger transforms a passive emotion detector into an active
 human handoff decision system — the actual business problem being solved.

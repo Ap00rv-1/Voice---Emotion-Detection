@@ -1,5 +1,5 @@
 """
-Arrowhead BFSI Voice Emotion Pipeline
+BFSI Voice Emotion Pipeline
 --------------------------------------
 Audio → STT (Whisper) → Emotion (wav2vec2) → Escalation → LLM (Llama-3.2) → TTS (Edge)
 """
@@ -24,7 +24,7 @@ MAX_SAMPLES = TARGET_SR * 6
 ID2LABEL    = {0: "calm", 1: "frustrated", 2: "disengaged"}
 
 
-class ArrowheadPipeline:
+class Pipeline:
     def __init__(self, emotion_model_path: str, hf_token: str):
         print("Loading emotion model...")
         self.feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(emotion_model_path)

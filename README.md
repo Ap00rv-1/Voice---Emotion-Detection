@@ -1,4 +1,4 @@
-# Arrowhead BFSI Voice Emotion Detection System
+# BFSI Voice Emotion Detection System
 
 A voice emotion detection system for BFSI call centers, designed for real Indian telephone audio.
 

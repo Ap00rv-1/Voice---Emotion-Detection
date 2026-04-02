@@ -1,0 +1,14 @@
+torch>=2.0.0
+torchaudio>=2.0.0
+transformers==4.45.0
+accelerate>=0.20.0
+bitsandbytes>=0.41.0
+openai-whisper
+edge-tts
+nest-asyncio
+librosa
+soundfile
+pandas
+numpy
+scikit-learn
+evaluate

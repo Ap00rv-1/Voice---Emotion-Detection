@@ -18,7 +18,7 @@ Whisper small         — Speech to text
       ↓
 wav2vec2 (fine-tuned) — Emotion detection
       ↓
-Escalation trigger    — Distress > 60% × 3 chunks → human handoff
+Escalation trigger    — Distress > 60% x 3 chunks → human handoff
       ↓
 Llama-3.2-3B          — Emotion-aware response generation
       ↓
@@ -38,43 +38,57 @@ Edge TTS              — Indian English voice output (en-IN-NeerjaNeural)
 Distress confidence > 60% for 3 consecutive 6-second chunks → escalation flag for human agent handoff.
 
 ## Quick Start
+
+### Step 1 — Get the dataset
+
+Shemo is a licensed academic dataset. Download it from Kaggle:
+
+**https://www.kaggle.com/datasets/mansourehk/shemo-persian-speech-emotion-detection-database**
+
+After downloading, place files in:
+```
+data/raw/shemo/male/
+data/raw/shemo/female/
+```
+
+Then run preprocessing:
+```bash
+python data/preprocess.py --shemo_root data/raw/shemo --output_csv data/shemo.csv
+```
+
+### Step 2 — Train the emotion model
+
+Open the fine-tuning notebook on Kaggle:
+
+**models/training.ipynb**
+
+- Add your Shemo dataset as input
+- Enable GPU T4 x2
+- Run all cells top to bottom
+- Model saves to `/kaggle/working/wav2vec2-shemo-bfsi`
+- Download the saved model folder to your machine
+
+### Step 3 — Run the demo
+
+Open **demo/demo.ipynb** in Google Colab:
+- Upload your saved model folder to Google Drive
+- Add your Hugging Face token (needed for Llama-3.2-3B access)
+- Run all cells
+- Upload any `.wav` file and click Analyze and Respond
+
+### Step 4 — Use in your own code
 ```python
 from inference.pipeline import ArrowheadPipeline
 
 pipeline = ArrowheadPipeline(
-    emotion_model_path="wav2vec2-shemo-bfsi",
+    emotion_model_path="path/to/wav2vec2-shemo-bfsi",
     hf_token="your_hf_token",
 )
 
 result = pipeline.run("call_audio.wav")
 print(result["emotion"])       # frustrated
-print(result["escalate"])      # True/False
+print(result["escalate"])      # True / False
 print(result["bot_response"])  # empathetic response text
-```
-
-## Pre-trained Model
-
-The fine-tuned wav2vec2 emotion model is available on Hugging Face:
-
-**https://huggingface.co/your-hf-username/wav2vec2-shemo-bfsi**
-```python
-from transformers import Wav2Vec2ForSequenceClassification, Wav2Vec2FeatureExtractor
-
-model     = Wav2Vec2ForSequenceClassification.from_pretrained("your-hf-username/wav2vec2-shemo-bfsi")
-extractor = Wav2Vec2FeatureExtractor.from_pretrained("your-hf-username/wav2vec2-shemo-bfsi")
-```
-
-## Dataset
-
-**Shemo — Persian Speech Emotion Detection Database**
-- Download: https://www.kaggle.com/datasets/mansourehk/shemo-persian-speech-emotion-detection-database
-- Paper: https://arxiv.org/abs/1906.01155
-- 3000 samples, remapped to 3 BFSI classes (calm / frustrated / disengaged)
-- Augmented with 8kHz codec simulation + Gaussian noise to match phone call quality
-
-After downloading, run:
-```bash
-python data/preprocess.py --shemo_root data/raw/shemo --output_csv data/shemo.csv
 ```
 
 ## Repo Structure
@@ -86,7 +100,7 @@ Voice---Emotion-Detection/
 │   ├── preprocess.py        — Shemo preprocessing + BFSI label remapping
 │   └── download_data.py     — Dataset download instructions
 ├── models/
-│   └── training.ipynb       — wav2vec2 fine-tuning on Shemo
+│   └── training.ipynb       — wav2vec2 fine-tuning on Shemo (run on Kaggle)
 ├── inference/
 │   └── pipeline.py          — Complete production pipeline
 ├── demo/
@@ -95,13 +109,21 @@ Voice---Emotion-Detection/
     └── classification_report.txt
 ```
 
+## Dataset
+
+**Shemo — Persian Speech Emotion Detection Database**
+- Download: https://www.kaggle.com/datasets/mansourehk/shemo-persian-speech-emotion-detection-database
+- Paper: https://arxiv.org/abs/1906.01155
+- 3000 samples, remapped to 3 BFSI classes (calm / frustrated / disengaged)
+- Augmented with 8kHz codec simulation + Gaussian noise at 12dB SNR
+
 ## Tech Stack
 
 | Component | Model |
 |---|---|
 | Speech to text | openai/whisper-small |
 | Emotion detection | facebook/wav2vec2-base (fine-tuned on Shemo) |
-| Language model | meta-llama/Llama-3.2-3B-Instruct (4-bit) |
+| Language model | meta-llama/Llama-3.2-3B-Instruct (4-bit quantized) |
 | Text to speech | Microsoft Edge TTS — en-IN-NeerjaNeural |
 
 ## Training Details
@@ -109,16 +131,16 @@ Voice---Emotion-Detection/
 - Base model: facebook/wav2vec2-base
 - Frozen layers: CNN feature extractor + first 9 transformer layers
 - Trainable parameters: 21M out of 90M total
-- Training data: 2136 samples (85% split)
-- Validation data: 377 samples (15% split)
-- Class weights: balanced (disengaged 3.7x due to imbalance)
+- Training samples: 2136 (85% split)
+- Validation samples: 377 (15% split)
+- Class weights: balanced (disengaged boosted 3.7x)
 - Hardware: Kaggle T4 x2 GPU
 
 ## Why This Matters for BFSI
 
 Standard emotion detectors are trained on Western studio-recorded speech.
 This system is trained on South Asian speech patterns and augmented to handle
-real phone call audio quality — the actual conditions of an Arrowhead call center.
+real phone call audio quality — matching the actual conditions of an Arrowhead call center.
 
 The escalation trigger transforms a passive emotion detector into an active
 human handoff decision system — the actual business problem being solved.
